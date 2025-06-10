@@ -12,23 +12,15 @@
 
 #define FLASH_PORT kFLEXSPI_PortA1
 
-#define NOR_CMD_LUT_SEQ_IDX_READ_FAST_QUAD     0
-#define NOR_CMD_LUT_SEQ_IDX_WRITESTATUSREG     1
 #define NOR_CMD_LUT_SEQ_IDX_WRITEENABLE        2
 #define NOR_CMD_LUT_SEQ_IDX_ERASESECTOR        3
-#define NOR_CMD_LUT_SEQ_IDX_PAGEPROGRAM_QUAD   4
 #define NOR_CMD_LUT_SEQ_IDX_ERASECHIP          5
 #define NOR_CMD_LUT_SEQ_IDX_PAGEPROGRAM_SINGLE 6
 #define NOR_CMD_LUT_SEQ_IDX_READ_NORMAL        7
-#define NOR_CMD_LUT_SEQ_IDX_READID             8
 #define NOR_CMD_LUT_SEQ_IDX_WRITE              9
-#define NOR_CMD_LUT_SEQ_IDX_ENTERQPI           10
-#define NOR_CMD_LUT_SEQ_IDX_EXITQPI            11
 #define NOR_CMD_LUT_SEQ_IDX_READSTATUSREG      12
-#define NOR_CMD_LUT_SEQ_IDX_READ_FAST          13
 
 #define CUSTOM_LUT_LENGTH        60
-#define FLASH_QUAD_ENABLE        0x2
 #define FLASH_BUSY_STATUS_POL    1
 #define FLASH_BUSY_STATUS_OFFSET 0
 
@@ -70,14 +62,6 @@ const uint32_t customLUT[CUSTOM_LUT_LENGTH] = {
         FLEXSPI_LUT_SEQ(kFLEXSPI_Command_SDR, kFLEXSPI_1PAD, 0x02, kFLEXSPI_Command_RADDR_SDR, kFLEXSPI_1PAD, 0x18),
     [4 * NOR_CMD_LUT_SEQ_IDX_PAGEPROGRAM_SINGLE + 1] =
         FLEXSPI_LUT_SEQ(kFLEXSPI_Command_WRITE_SDR, kFLEXSPI_1PAD, 0x04, kFLEXSPI_Command_STOP, kFLEXSPI_1PAD, 0),
-
-    /* Read ID */
-    [4 * NOR_CMD_LUT_SEQ_IDX_READID] =
-        FLEXSPI_LUT_SEQ(kFLEXSPI_Command_SDR, kFLEXSPI_1PAD, 0x9F, kFLEXSPI_Command_READ_SDR, kFLEXSPI_1PAD, 0x04),
-
-    /* Enable Quad mode */
-    [4 * NOR_CMD_LUT_SEQ_IDX_WRITESTATUSREG] =
-        FLEXSPI_LUT_SEQ(kFLEXSPI_Command_SDR, kFLEXSPI_1PAD, 0x31, kFLEXSPI_Command_WRITE_SDR, kFLEXSPI_1PAD, 0x01),
 
     /*  Dummy write, do nothing when AHB write command is triggered. */
     [4 * NOR_CMD_LUT_SEQ_IDX_WRITE] =
@@ -158,43 +142,6 @@ static status_t flexspi_nor_write_enable(FLEXSPI_Type *base, uint32_t baseAddr)
     flashXfer.seqIndex      = NOR_CMD_LUT_SEQ_IDX_WRITEENABLE;
 
     status = FLEXSPI_TransferBlocking(base, &flashXfer);
-
-    return status;
-}
-
-static status_t flexspi_nor_enable_quad_mode(FLEXSPI_Type *base)
-{
-    flexspi_transfer_t flashXfer;
-    status_t status;
-    uint32_t writeValue = FLASH_QUAD_ENABLE;
-
-    /* Write enable */
-    status = flexspi_nor_write_enable(base, 0);
-
-    if (status != kStatus_Success)
-    {
-        return status;
-    }
-
-    /* Enable quad mode. */
-    flashXfer.deviceAddress = 0;
-    flashXfer.port          = FLASH_PORT;
-    flashXfer.cmdType       = kFLEXSPI_Write;
-    flashXfer.SeqNumber     = 1;
-    flashXfer.seqIndex      = NOR_CMD_LUT_SEQ_IDX_WRITESTATUSREG;
-    flashXfer.data          = &writeValue;
-    flashXfer.dataSize      = 1;
-
-    status = FLEXSPI_TransferBlocking(base, &flashXfer);
-    if (status != kStatus_Success)
-    {
-        return status;
-    }
-
-    status = flexspi_nor_wait_bus_busy(base);
-
-    /* Do software reset. */
-    FLEXSPI_SoftwareReset(base);
 
     return status;
 }
