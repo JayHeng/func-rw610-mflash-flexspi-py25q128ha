@@ -29,9 +29,35 @@
 lfs_t lfs;
 struct lfs_config cfg;
 
+uint32_t s_wr_buf[64];
+uint32_t s_rb_buf[64];
+
 /*******************************************************************************
  * Code
  ******************************************************************************/
+
+void mflash_drv_self_test(void)
+{
+    PRINTF("mflash_drv self test \r\n");
+    mflash_drv_init();
+    mflash_drv_sector_erase(0x0);
+    for (uint32_t i=0; i<64; i++)
+    {
+        s_wr_buf[i] = i;
+    }
+    mflash_drv_page_program(0x0, s_wr_buf);
+    mflash_drv_read(0x0, s_rb_buf, sizeof(s_wr_buf));
+    PRINTF("init/erase/program/read test ");
+    if (!memcmp(s_rb_buf, s_wr_buf, sizeof(s_wr_buf)))
+    {
+        PRINTF("pass\r\n");
+    }
+    else
+    {
+        PRINTF("fail\r\n");
+        while (1);
+    }
+}
 
 int main(void)
 {
@@ -39,28 +65,33 @@ int main(void)
 
     BOARD_InitHardware();
     
+    mflash_drv_self_test();
+    
     PRINTF("LFS basic test \r\n");
 
     lfs_get_default_config(&cfg);
 
     status = lfs_storage_init(&cfg);
+    PRINTF("LFS storage init ");
     if (status != kStatus_Success)
     {
-        PRINTF("LFS storage init failed: %i\r\n", status);
+        PRINTF("failed: %i\r\n", status);
         return status;
     }
 
+    PRINTF("done\r\nformatting LFS ");
     int res = lfs_format(&lfs, &cfg);
     if (res)
     {
-        PRINTF("\rError formatting LFS: %d\r\n", res);
+        PRINTF("Error: %d\r\n", res);
         return -1;
     }
 
+    PRINTF("done\r\nmounting LFS ");
     res = lfs_mount(&lfs, &cfg);
     if (res)
     {
-        PRINTF("\rError mounting LFS\r\n");
+        PRINTF("Error: %d\r\n", res);
         return -1;
     }
 
@@ -68,9 +99,10 @@ int main(void)
         char *dirpath;
         dirpath = "/";
         res = lfs_mkdir(&lfs, dirpath);
+        PRINTF("done\r\ncreating directory ");
         if (res)
         {
-            PRINTF("\rError creating directory: %i\r\n", res);
+            PRINTF("Error: %i\r\n", res);
             return -1;
         }
 
@@ -79,27 +111,30 @@ int main(void)
             char *filepath;
             filepath = "test.txt";
             res = lfs_file_open(&lfs, &file, filepath, LFS_O_WRONLY | LFS_O_APPEND | LFS_O_CREAT);
+            PRINTF("done\r\nopening file ");
             if (res)
             {
-                PRINTF("\rError opening file: %i\r\n", res);
+                PRINTF("Error: %i\r\n", res);
                 return -1;
             }
             char *filecontent;
             filecontent = "hello world";
             res = lfs_file_write(&lfs, &file, filecontent, strlen(filecontent));
+            PRINTF("done\r\nwriting file ");
             if (res > 0)
                 res = lfs_file_write(&lfs, &file, "\r\n", 2);
 
             if (res < 0)
             {
-                PRINTF("\rError writing file: %i\r\n", res);
+                PRINTF("Error: %i\r\n", res);
             }
-
+            PRINTF("done\r\nclosing file ");
             res = lfs_file_close(&lfs, &file);
             if (res)
             {
-                PRINTF("\rError closing file: %i\r\n", res);
+                PRINTF("Error: %i\r\n", res);
             }
+            PRINTF("done\r\n");
         }
     }
 

@@ -23,8 +23,8 @@ void BOARD_InitHardware(void)
 
     CLOCK_EnableClock(kCLOCK_Flexspi);
     RESET_ClearPeripheralReset(kFLEXSPI_RST_SHIFT_RSTn);
-    /* Use aux0_pll_clk / 2 */
-    BOARD_SetFlexspiClock(FLEXSPI, 2U, 2U);
+    /* Use T3 256m / 8 */
+    BOARD_SetFlexspiClock(FLEXSPI, 6U, 8U);
 }
 
 /*${function:end}*/

@@ -246,7 +246,7 @@
                     <state>MCUXPRESSO_SDK</state>
                     <state>CPU_RW612ETA2I</state>
                     <state>BOOT_HEADER_ENABLE=1</state>
-                    <state>MFLASH_FILE_BASEADDR=7340032</state>
+                    <state>MFLASH_FILE_BASEADDR=3145728</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -397,7 +397,7 @@
                     <state>$PROJ_DIR$/../../../../../components/els_pkc/src/platforms/rw61x/inc</state>
                     <state>$PROJ_DIR$/../../../../../components/els_pkc/includes/platform/rw61x</state>
                     <state>$PROJ_DIR$/../../../../../components/flash/mflash</state>
-                    <state>$PROJ_DIR$/../../../../../components/flash/mflash/rdrw612bga</state>
+                    <state>$PROJ_DIR$/../../../../../components/flash/mflash/common</state>
                     <state>$PROJ_DIR$/../../../../../middleware/littlefs</state>
                     <state>$PROJ_DIR$/../../../../../middleware/littlefs/mflash</state>
                 </option>
@@ -5527,9 +5527,21 @@
                 <name>rdrw612bga</name>
                 <file>
                     <name>$PROJ_DIR$\..\..\..\..\..\components\flash\mflash\rdrw612bga\mflash_drv.c</name>
+                    <excluded>
+                        <configuration>debug</configuration>
+                    </excluded>
                 </file>
                 <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\components\flash\mflash\rdrw612bga\mflash_drv.h</name>
+                    <name>$PROJ_DIR$\..\..\..\..\..\components\flash\mflash\common\mflash_drv.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\..\..\..\components\flash\mflash\common\mflash_drv_3B.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\..\..\..\components\flash\mflash\common\mflash_drv_4B.c</name>
+                    <excluded>
+                        <configuration>debug</configuration>
+                    </excluded>
                 </file>
             </group>
             <file>
